@@ -15,21 +15,36 @@ import GenericMoreButton from 'src/components/GenericMoreButton';
 import CircularProgress from '../LocalHospitals/CircularProgress';
 
 const useStyles = makeStyles(() => ({
-  root: {}
+  root: { display: 'flex', flexDirection: 'column', justifyContent: 'center' }
 }));
 
 function PerformanceOverTime({ className, location, countyData, ...rest }) {
   const classes = useStyles();
 
-  const densityRisk = location.density ? 1 + location.density / 10000 : 1;
-  const confirmedRisk =
-    countyData.totalConfirmed && location.population
+  let densityRisk =
+    location.density && location.density != 0
+      ? 1 + location.density / 10000
+      : 1;
+  let confirmedRisk =
+    countyData.totalConfirmed && location.population && location.population != 0
       ? 1 + (countyData.totalConfirmed / location.population) * 8
       : 1;
-  const deathRisk =
+  let deathRisk =
     countyData.totalDeaths && countyData.totalConfirmed
       ? 1 + (countyData.totalDeaths / countyData.totalConfirmed) * 5
       : 1;
+
+  // For development, remove when finished with feature
+  console.log(
+    'Population',
+    location.population,
+    'Total Confirmed',
+    countyData.totalConfirmed
+  );
+  console.table(densityRisk, confirmedRisk, deathRisk);
+
+  // Handle small towns
+  deathRisk = location.population < 10000 ? 1 : deathRisk;
   const riskLevel = densityRisk * confirmedRisk * deathRisk;
 
   let riskNumber = riskLevel * 10;
@@ -59,19 +74,27 @@ function PerformanceOverTime({ className, location, countyData, ...rest }) {
     <Card className={clsx(classes.root, className)} {...rest}>
       <CardHeader action={<GenericMoreButton />} title="Risk Analysis" />
       <Divider />
-      <CardContent style={{ minHeight: '30%' }}>
+
+      {/* <Box minHeight="100%"> */}
+      <CardContent
+        direction="column"
+        alignItems="center"
+        justifyContent="center"
+        style={{ display: 'flex', flex: 1 }}
+      >
         <Grid
           container
           direction="row"
           justify="space-around"
           alignItems="center"
           justifyContent="center"
+          justify="center"
+          height="100%"
         >
           <Grid item md={6} xs={12}>
-            <Typography align="center" variant="h3" color="textSecondary">
-              Your Risk Level Is:
+            <Typography align="center" variant="h3" color="textPrimary">
+              Your risk:
             </Typography>
-
             <Grid
               style={{ marginTop: 10 }}
               container
@@ -84,29 +107,44 @@ function PerformanceOverTime({ className, location, countyData, ...rest }) {
                 <CircularProgress value={riskNumber} />
               </Grid>
             </Grid>
-
-            <Typography
-              align="center"
-              variant="h1"
-              color={riskNumber > 50 ? 'error' : 'primary'}
-            >
-              {riskNumber === NaN ? 'Loading...' : roundedRisk} / 100
-            </Typography>
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Box display="inline-block">
+                <Typography
+                  align="center"
+                  variant="h1"
+                  color={riskNumber > 50 ? 'error' : 'primary'}
+                  style={{ marginTop: 10, display: 'inline-block' }}
+                >
+                  {riskNumber === NaN ? 'Loading...' : roundedRisk}
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  style={{ display: 'inline-block' }}
+                >
+                  /100
+                </Typography>
+              </Box>
+            </Box>
           </Grid>
 
           <Grid item md={6} xs={12}>
-            <Typography>{riskMessages[messageNumber]}</Typography>
+            <Typography color="textPrimary">
+              {riskMessages[messageNumber]}
+            </Typography>
             <Typography variant="subtitle2">
               <Box fontStyle="italic" mt={2}>
-                This risk is an estimate based on your city and district
-                information including death rates, infection counts, density
-                information, and other data. Please consult official news
-                sources in your area for more detailed and accurate information.
+                This risk is an abstract value estimated by your city and
+                district information including death rates, infection counts,
+                density information, and other data. The data and information on
+                this page may be inaccurate and should only be taken as an
+                unofficial recommendation. Please refer to reputable sources for
+                verified information.
               </Box>
             </Typography>
           </Grid>
         </Grid>
       </CardContent>
+      {/* </Box> */}
     </Card>
   );
 }

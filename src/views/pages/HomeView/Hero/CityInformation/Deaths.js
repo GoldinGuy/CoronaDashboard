@@ -42,7 +42,7 @@ function Density({ className, value, ...rest }) {
           variant="overline"
           color="textSecondary"
         >
-          Confirmed Deaths
+          County Deaths
         </Typography>
         <Box display="flex" alignItems="center" flexWrap="wrap">
           {value || value === null ? (
